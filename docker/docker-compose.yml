@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  local_postgres:
+    image: postgres:14.9
+    restart: always
+    container_name: ${COMPOSE_PROJECT_NAME}
+    hostname: ${COMPOSE_PROJECT_NAME}
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB_NAME}
+      TZ: ${TZ}
+    ports:
+      - ${POSTGRES_PORT}:5432
+    volumes:
+      - ./data_psql:/var/lib/postgresql/data
+
+volumes:
+  data_psql:
+
