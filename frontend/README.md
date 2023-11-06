@@ -29,6 +29,9 @@ pnpm dev
 - [ ] StoryBook入れたい
 - [ ] scaffoldを入れたい
 - [ ] React formを入れたい
+- [ ] インボイス対応
+- [ ] GRPC対応
+- [ ] .eslintrc.jsのフォーマット設定を完成させる
 
 ## Online Shop 設計<<考え中>>
 
