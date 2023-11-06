@@ -21,7 +21,15 @@ Starting server.
 pnpm dev
 ```
 
-## Online Shop 設計
+## Feature
+
+- [ ] 画面を作成
+- [ ] バックエンドと繋げる
+- [ ] .envを読み取れるようにする
+- [ ] StoryBook入れたい
+- [ ] scaffoldを入れたい
+
+## Online Shop 設計<<考え中>>
 
 アマゾンとかを真似るでいいと思う。
 
