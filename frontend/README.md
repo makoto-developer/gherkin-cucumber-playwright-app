@@ -28,6 +28,7 @@ pnpm dev
 - [ ] .envを読み取れるようにする
 - [ ] StoryBook入れたい
 - [ ] scaffoldを入れたい
+- [ ] React formを入れたい
 
 ## Online Shop 設計<<考え中>>
 

@@ -1,3 +1,4 @@
+const [off, warn, error] = ["off", "warn", "error"]
 module.exports = {
     "env": {
         "browser": true,
@@ -6,7 +7,8 @@ module.exports = {
     "extends": [
         "eslint:recommended",
         "plugin:@typescript-eslint/recommended",
-        "plugin:react/recommended"
+        "plugin:react/recommended",
+        "plugin:@next/next/recommended"
     ],
     "overrides": [
         {
@@ -21,6 +23,11 @@ module.exports = {
             }
         }
     ],
+    "settings": {
+        "react": {
+            "version": "detect",
+        },
+    },
     "parser": "@typescript-eslint/parser",
     "parserOptions": {
         "ecmaVersion": "latest",
@@ -31,5 +38,7 @@ module.exports = {
         "react"
     ],
     "rules": {
+        "react/jsx-uses-react": off,
+        "react/react-in-jsx-scope": off
     }
 }
