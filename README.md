@@ -15,12 +15,12 @@ GherkinはE2E (エンドツーエンド) テストでよく使われる記法。
 
 作成時点で最新のバージョンで実装する
 
-- Next.js v13.4
+- Next.js v14
 - Cucumber
 - Playwright
-- TypeScript
+- TypeScript v5
 - Elixir/Phoenix v15.7/1.7.10
-- PostgreSQL 13.12
+- PostgreSQL 14.9
 
 ## Port
 
