@@ -15,12 +15,15 @@ GherkinはE2E (エンドツーエンド) テストでよく使われる記法。
 
 作成時点で最新のバージョンで実装する
 
-- Next.js v14
+Frontend
+- Remix.js
 - Cucumber
 - Playwright
-- TypeScript v5
-- Elixir/Phoenix v15.7/1.7.10
-- PostgreSQL 14.9
+- TypeScript
+
+Backend
+- Elixir/Phoenix
+- PostgreSQL
 
 ## Port
 
@@ -36,7 +39,7 @@ GherkinはE2E (エンドツーエンド) テストでよく使われる記法。
 
 ## References
 
-Gherkin Syntax
+Gherkin
 - https://cucumber.io/docs/gherkin/reference/
 
 Cucumber homepage
