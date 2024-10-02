@@ -5,21 +5,21 @@
 
 ## Description
 
-GherkinはE2E (エンドツーエンド) テストでよく使われる記法。
+<<説明を書く>>
 
-実装のサンプルを作成する。
+題材は「オンラインショップ」をテーマに実装してみる。
 
-題材は「オンラインショップ」をテーマに実装してみます。
+商品をクリック、購入する、まで。最小限でいく。
 
 ## Stack
 
 作成時点で最新のバージョンで実装する
 
 Frontend
-- Remix.js
-- Cucumber
-- Playwright
+- Next.js (v14.2 https://nextjs.org/blog/next-14-2)
 - TypeScript
+- Playwright
+- Cucumber
 
 Backend
 - Elixir/Phoenix

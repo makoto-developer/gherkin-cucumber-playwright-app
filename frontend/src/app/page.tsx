@@ -1,10 +1,12 @@
-import styles from './page.module.css'
-import Top from '../components/ui/top'
+import styles from "./page.module.css";
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <main className={styles.main}>
-      <Top />
-    </main>
-  )
+    <div className={styles.page}>
+      <h1>オンラインショップ トップページ</h1>
+    <div><Link href={"/"}>買い物はこちらから</Link></div>
+
+    </div>
+  );
 }

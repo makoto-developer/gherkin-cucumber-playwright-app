@@ -2,15 +2,15 @@
 
 ## Getting Start
 
-.envを作成してください
+`.env`を作成
 
 ```shell
 cp .env.example .env
 ```
 
-.envファイルを開き、パスワードやポートなどシークレット情報を更新する。
+ポート番号やPSQLの情報を編集
 
-```
+```shell
 vi .env
 ```
 
@@ -20,26 +20,28 @@ PostgreSQLコンテナを立ち上げる
 docker compose up -d
 ```
 
-## Postgresql 作業
+## Compose start, stop, destroy
 
-dockerの中に入る
-
-```shell
-docker compose exec gherkin_online_shop_psql bash
-```
-
-
-## コンテナ内で作業
-
-データベースに接続する(ユーザ名は.envを参照)
+起動
 
 ```shell
-psql -U postgres -d app_dev
+docker compose start
 ```
 
-データベースから出る
+停止
 
-```postgresql
-\q
+```shell
+docker compose start
 ```
 
+Composeを削除
+
+```shell
+docker compose down
+```
+
+## Other
+
+Postgre Admin Serverが欲しい場合はdocker-templateを参照
+
+https://github.com/makoto-developer/docker-templates/tree/main/postgresql-single-server
