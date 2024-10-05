@@ -1,36 +1,56 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Frontend
 
-## Getting Started
+## Required
 
-First, run the development server:
+See repository root(https://github.com/makoto-developer/gherkin-cucumber-playwright-app).
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Stack
+
+- Next.js v14
+- TypeScript v5
+
+## Service
+
+- オンラインショップ
+
+## Pages
+
+|page|path|param|description|
+|:-----|:-----|:-----|:-----|
+|トップページ|`/`|``|ルート|
+|商品ページ|`/items`|``|商品一覧|
+|商品詳細ページ|`/items/:id`|`id` item id|商品の説明|
+|カートページ|`/cart`|``|カート|
+|決済ページ|`/pay`|``|決済|
+|注文一覧|`/order_history`|``|注文した商品のリスト|
+
+## Getting Start
+
+Cloning repository, and move to frontend directory.
+
+```shell
+cd frontend
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+起動方法
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm install
+pnpm dev
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Development Notes
 
-## Learn More
+アプリ構築時
 
-To learn more about Next.js, take a look at the following resources:
+```
+create-next-app@latest --use-pnpm
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# 画像等を配置
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+配布していいのかよくわからないので、各自以下のURLからダウンロードしてpathに配置してください。
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+|path|url|
+|:-----|:-----|
+|src/app/mikan.svg|https://dot-illust.net/mikan/|
