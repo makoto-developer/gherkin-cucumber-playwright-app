@@ -17,12 +17,24 @@ See repository root(https://github.com/makoto-developer/gherkin-cucumber-playwri
 
 |page|path|param|description|
 |:-----|:-----|:-----|:-----|
-|トップページ|`/`|``|ルート|
-|商品ページ|`/items`|``|商品一覧|
+|トップページ|`/`||ルート|
+|商品ページ|`/items`||商品一覧|
 |商品詳細ページ|`/items/:id`|`id` item id|商品の説明|
-|カートページ|`/cart`|``|カート|
-|決済ページ|`/pay`|``|決済|
-|注文一覧|`/order_history`|``|注文した商品のリスト|
+|カートページ|`/cart`||カート|
+|決済ページ|`/pay`||決済|
+|注文一覧|`/order_history`||注文した商品のリスト|
+
+## Feature
+
+|function|description|
+|:-----|:-----|
+|認証|ユーザ認証|
+|logging|エラーをサーバーサイドだ回収できるようにする(NextAuth)|
+|||
+|||
+|||
+|||
+|||
 
 ## Getting Start
 
@@ -32,7 +44,7 @@ Cloning repository, and move to frontend directory.
 cd frontend
 ```
 
-起動方法
+frontend start.
 
 ```bash
 pnpm install
@@ -41,11 +53,13 @@ pnpm dev
 
 ## Development Notes
 
-アプリ構築時
+build app.
 
 ```
 create-next-app@latest --use-pnpm
 ```
+
+- no tailwind
 
 # 画像等を配置
 
@@ -53,4 +67,5 @@ create-next-app@latest --use-pnpm
 
 |path|url|
 |:-----|:-----|
-|src/app/mikan.svg|https://dot-illust.net/mikan/|
+|src/public/mikan.svg|https://dot-illust.net/mikan/|
+|src/public/celery.svg|https://dot-illust.net/celery/|

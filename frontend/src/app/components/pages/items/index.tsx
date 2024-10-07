@@ -1,10 +1,13 @@
-import React from "react";
-import service, {Item} from "@/app/components/pages/items/service";
+import React, { useCallback } from "react";
+import service from "@/app/components/pages/items/service";
 import Image from "next/image";
-import Link from "next/link";
+import {Item} from "@/types/shop";
 
 const ItemsPage = () => {
-    const {items} = service()
+    const {items, count, incrementCount, decrementCount} = service()
+    const handleAddCart = useCallback(function(id: number) {
+
+    },[])
     return <div>
         <h1>オンラインショップ 商品一覧</h1>
         <div>
@@ -26,8 +29,11 @@ const ItemsPage = () => {
                         <td>
                             <Image src={item.url}  alt={item.description} width={100} height={100}/>
                             </td>
-                        <td><input value={0} type={'number'} /></td>
-                        <td><button type={'button'}>カートに入れる</button></td>
+                        <td><input value={count} type={'number'} />
+                            <input type={'button'} onClick={() => incrementCount} value={'+'}/>
+                            <input type={'button'} onClick={() => decrementCount} value={'-'}/>
+                        </td>
+                        <td><button onClick={() => handleAddCart(item.id)}>カートに入れる</button></td>
                     </tr>
                 })}
                 </tbody>
