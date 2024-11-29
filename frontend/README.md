@@ -2,12 +2,13 @@
 
 ## Required
 
-See repository root(https://github.com/makoto-developer/gherkin-cucumber-playwright-app).
+- 
 
 ## Stack
 
 - Next.js v14
 - TypeScript v5
+- pnpm
 
 ## Service
 
@@ -44,7 +45,7 @@ Cloning repository, and move to frontend directory.
 cd frontend
 ```
 
-frontend start.
+frontend start. using pnpm.
 
 ```bash
 pnpm install

@@ -14,9 +14,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
+      <header></header>
       <body>
         <CounterStoreProvider>{children}</CounterStoreProvider>
       </body>
+      <footer>2024 @makoto-developer</footer>
     </html>
   );
 }
