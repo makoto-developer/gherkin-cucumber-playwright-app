@@ -35,3 +35,5 @@ online_shop-*.tar
 npm-debug.log
 /assets/node_modules/
 
+# environment
+.env

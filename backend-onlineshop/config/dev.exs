@@ -2,13 +2,14 @@ import Config
 
 # Configure your database
 config :online_shop, OnlineShop.Repo,
-  username: "postgres",
-  password: "postgres",
-  hostname: "localhost",
-  database: "online_shop_dev",
+  username: System.get_env("PSQL_USERNAME"),
+  password: System.get_env("PSQL_PASSWORD"),
+  hostname: System.get_env("PSQL_HOSTNAME"),
+  database: System.get_env("PSQL_DATABASE"),
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,
-  pool_size: 10
+  pool_size: 10,
+  port: System.get_env("PSQL_PORT")
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
