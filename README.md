@@ -33,11 +33,11 @@ E2E のテストコードは、このリポジトリの `e2e/` に置く。テ�
 | 教育 | 新しく入った人がシナリオを読めば、主要なユースケースに追いつける |
 | 速度 | 繰り返しの手動確認が減り、リファクタリングに踏み切れる |
 
-このうち「仕様の発見」と「教育」は、正確には Gherkin で仕様を書くこと（BDD）の効果で、ブラウザを動かす E2E でなくても得られる。ブラウザ E2E でなければ拾えないのは、画面・サービス間連携・設定をまたいで初めて壊れる種類の不具合のほう。分けて理解しておくと、あとで「API テストで十分では」と言われたときに答えられる。
+このうち「仕様の発見」と「教育」は、正確には Gherkin で仕様を書くこと（BDD）の効果で、ブラウザを動かす E2E でなくても得られる。ブラウザ E2E がとくに拾いやすいのは、画面・サービス間連携・設定をまたいで初めて壊れる種類の不具合のほう（API テストやコントラクトテストと重なる範囲もある）。分けて理解しておくと、あとで「API テストで十分では」と言われたときに答えられる。
 
 **仕様が実行可能な形で残る。** トップダウンでシナリオを書くと、プロダクトの仕様とユースケースを自分の言葉で説明することになる。この工程を通ると理解が一段深くなり、UI の粗さや仕様の抜けが表に出てくる。書き上がったシナリオは、新機能を設計するときの考慮漏れチェックにも、障害報告で「このケースを想定していなかった」と説明するときにも使える。
 
-**シナリオを書く工程が仕様レビューになる。** 作った本人でさえ気づいていなかったパターンや考慮漏れが出てくる。ここが E2E のいちばん割に合う部分で、テストが1本も動く前から価値が出る。プロダクトに精通した開発者が増えるという副作用もあって、これは生産性にそのまま効く。
+**シナリオを書く工程が仕様レビューになる。** 作った本人でさえ気づいていなかったパターンや考慮漏れが出てくる。Gherkin で具体例を突き合わせる工程そのものの効果なので、テストが1本も動く前から返ってくる。プロダクトに精通した開発者が増えるという副作用もあって、これは生産性にそのまま効く。
 
 **新しく入った人がシナリオを読めば追いつける。** 仕様書は古びても誰も気づかないが、期待結果まで書いた E2E は、実装とずれたぶんが落ちる形で見える。落ちるドキュメントは直される。ただしシナリオが表せるのは自動化した範囲だけで、業務用語や例外の背景までは別に要る。
 
@@ -123,8 +123,8 @@ flowchart LR
     S["仕様<br/>ユースケース"] --> F[".feature<br/>Gherkin"]
     F --> C["Cucumber<br/>ステップ定義"]
     C --> P["Playwright<br/>ブラウザ操作"]
-    P --> W["Shop Service<br/>:4000"]
-    W --> M["Go サービス群<br/>:22100 番台"]
+    P --> W["Phoenix Web UI<br/>:4000"]
+    W --> M["Go サービス群<br/>:22100〜22111"]
     P --> R["レポート<br/>スクショ / trace"]
 ```
 
@@ -149,7 +149,7 @@ Gherkin は、前提・操作・期待結果を構造化して書くための記
 |:--|:--|:--|
 | E2E | Playwright / Cucumber / Node.js（未実装。バージョンは実装時に確定する） | `e2e/` |
 | テスト対象の Web UI | Elixir 1.15 以上 / Phoenix 1.8 | `backend/web/shop_mall_web` |
-| バックエンド | Go 1.25 / gRPC / PostgreSQL 16 | `backend/microservices/*` |
+| バックエンド | Go 1.25 / gRPC / PostgreSQL 16 | `backend/microservices/*` と `backend/simple-servers/*` |
 | 未接続のフロント | Next.js 14.2 / TypeScript | `frontend/` |
 
 Kubernetes 上にデプロイする案もあったが、誰でも手元で再現できることを優先して、ローカルで起動する方針にした。
@@ -159,7 +159,7 @@ Kubernetes 上にデプロイする案もあったが、誰でも手元で再現
 | ポート | 何 | どこ |
 |:--:|:--|:--|
 | 4000 | Phoenix Web UI — **E2E の対象** | `backend/web/shop_mall_web` |
-| 22100〜22111 | Go マイクロサービス 12 個（gRPC）。うち Shop Service は 22101 | `backend/microservices/*` |
+| 22100〜22111 | Go マイクロサービス 12 個（gRPC）。うち Shop Service は 22101 | `backend/microservices/*` / `backend/simple-servers/*` |
 | 22010〜22021 | PostgreSQL 12 インスタンス | `backend/infrastructure/docker` |
 | 22030〜 | Redis 12 インスタンス | 同上 |
 | 22000〜22007 | Elasticsearch / RabbitMQ / MinIO / MailHog | 同上 |
@@ -178,9 +178,11 @@ Kubernetes 上にデプロイする案もあったが、誰でも手元で再現
 ### 1. submodule ごとクローンする
 
 ```shell
-git clone --recursive git@github.com:makoto-developer/gherkin-cucumber-playwright-app.git
+git clone --recursive https://github.com/makoto-developer/gherkin-cucumber-playwright-app.git
 cd gherkin-cucumber-playwright-app
 ```
+
+書き込む予定があるなら SSH（`git@github.com:makoto-developer/gherkin-cucumber-playwright-app.git`）でもよい。submodule 側は `.gitmodules` で HTTPS を指しているので、鍵がなくても取得できる。
 
 クローン済みなら submodule だけ取得する。
 
@@ -195,7 +197,7 @@ cp backend/infrastructure/docker/.env.example backend/infrastructure/docker/.env
 docker compose -f backend/infrastructure/docker/docker-compose.yml up -d
 ```
 
-PostgreSQL 12 インスタンスに加えて、Redis 12 インスタンス・Elasticsearch・RabbitMQ・MinIO・MailHog が立つ。それなりにメモリを食うので、手元のリソースは確認しておいたほうがいい。ポート番号と認証情報は `.env` で変えられる（サンプル値なので、他とぶつかるなら遠慮なく変更する）。
+PostgreSQL 12 インスタンスに加えて、Redis 12 インスタンス・Elasticsearch・RabbitMQ・MinIO・MailHog が立つ。それなりにメモリを食うので、手元のリソースは確認しておいたほうがいい。ポート番号と認証情報は `.env` で変えられるが、**変えると Go サービス側とずれる**。`backend/simple-servers/*/main.go` が接続先を `postgresql://postgres:postgres_password@localhost:22014/...` のようにデフォルト値で直書きしているためで、`.env` を書き換えるなら各サービスに `ORDER_DATABASE_URL` などの環境変数を渡す必要がある。ぶつからない限りは既定値のまま使うのが早い。
 
 ### 3. Web UI を起動する
 
@@ -211,11 +213,12 @@ http://localhost:4000 が E2E の対象になる画面（`PORT` 環境変数で�
 
 **`backend/` の `make up` と `make build` は、submodule として置いたこのリポジトリからは動かない。** どちらも `scripts/start_all_services.sh` / `scripts/build_all_services.sh` を呼ぶが、この2本は `BASE_DIR` に上流作者のローカル絶対パス（`/Users/.../go_microservice_example`）を直書きしている。パスが解決できないため、サービスは1つも起動しない。
 
-問題はもう3つある。
+問題はもう4つある。
 
 - 起動スクリプトはビルド済みバイナリがある前提で、submodule のクローン直後にはそれが無い
 - 起動スクリプトが Shop Service として見ているのは `simple-servers/admin` で、E2E の対象である `web/shop_mall_web` は起動対象に入っていない
 - `make status` は `pgrep` でプロセス名を探すだけなので、`12/12 running` はポート待受や疎通の保証にならない
+- ビルドスクリプトが見ているのは Auth だけが `microservices/auth`、残り 10 個は `simple-servers/*` で、`microservices/shop` はビルド対象に入っていない。E2E が実際にどの実装群を相手にするのかが未整理
 
 `BASE_DIR` をスクリプト自身の位置から求める形（`BASE_DIR="$(cd "$(dirname "$0")/.." && pwd)"`）に直し、ビルド手順を足せば解消する見込みだが、上流に PR を出すか、こちら側にラッパーを持つかは未決。**この手順は未検証**であり、E2E を書き始める前にここを片付ける必要がある。
 
@@ -234,7 +237,7 @@ docker compose -f backend/infrastructure/docker/docker-compose.yml down
 
 どちらも操作と期待結果が手順の形で書かれているので、そのまま Gherkin の 前提 / もし / ならば に落とすところから始めるのが早い。
 
-セレクタの当て方は、`backend/web/shop_mall_web/e2e/` にある既存の Playwright テストが参考になる。
+セレクタの当て方は、`backend/web/shop_mall_web/e2e/` にある既存の Playwright テストが参考になる。ただしこの既存テストは接続先を `http://localhost:22200` で直書きしていて（13 箇所）、今回の対象である 4000 とは違う。参考にするのはセレクタだけにして、URL は `baseURL` に集約する。
 
 ## References
 

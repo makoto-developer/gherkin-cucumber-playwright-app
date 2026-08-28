@@ -45,3 +45,8 @@ docker compose down
 Postgre Admin Serverが欲しい場合はdocker-templateを参照
 
 https://github.com/makoto-developer/docker-templates/tree/main/postgresql-single-server
+
+## 注意
+
+このディレクトリは旧バックエンド(backend-onlineshop)用の定義で、現在は使っていない。
+データベースは submodule 側の `backend/infrastructure/docker` が立てる。ルート README の Getting Started でも使わない。
