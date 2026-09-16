@@ -18,7 +18,7 @@
 
 題材はオンラインショップ。商品を選び、カートに入れ、決済して購入するまでを最小限で通す。
 
-バックエンドは別リポジトリの [go_microservice_example](https://github.com/makoto-developer/go_microservice_example) を `backend/` に git submodule として取り込んで使う。Go のマイクロサービス 12 個と、それを gRPC で呼ぶ Phoenix 製の Web UI が入っていて、E2E の対象はこの Web UI（`backend/web/shop_mall_web`、ポート 4000）。
+バックエンドは別リポジトリの [go_microservice_example](https://github.com/makoto-developer/go_microservice_example) を `backend/` に git submodule として取り込んで使う。Go のマイクロサービス 12 個と、それを gRPC で呼ぶ Phoenix 製の Web UI が入っていて、E2E の対象はこの Web UI（`backend/web/shop_mall_web`、ポート 22200）。
 
 E2E のテストコードは、このリポジトリの `e2e/` に置く。テスト対象は submodule、テストは本体、という分け方をしている。テスト対象のバージョンが submodule の commit で固定されるので、「昨日は通ったのに今日落ちる」を調べるときに変数を1つ減らせる。
 
@@ -105,14 +105,10 @@ E2E は単体テストや API テストより遅く、落ちたときの原因�
 ├── backend/     git submodule → makoto-developer/go_microservice_example
 │                Go サービス 12 個 + Phoenix Web UI（E2E の対象）
 ├── e2e/         Gherkin の .feature とステップ定義（未実装）
-├── frontend/    Next.js。現在 E2E の対象外
-├── protobuf/    未着手
-└── docker/      旧バックエンド用の PostgreSQL 定義。現在は未使用
+└── protobuf/    未着手
 ```
 
-`frontend/` の Next.js は、当初この構成の画面として作っていたもの。バックエンドを go_microservice_example に差し替えたことで E2E の対象は submodule 側の Phoenix Web UI に移り、`frontend/` はどこにも接続していない状態になった。将来 Go マイクロサービスに繋ぎ直す余地を残して残置してある。
-
-`docker/` も同様に、旧バックエンド（Elixir/Phoenix 単体）用の PostgreSQL 定義で、今は使っていない。データベースは submodule 側の `backend/infrastructure/docker` が 12 インスタンスまとめて立てる。
+以前ここにあった `frontend/`（Next.js）と `docker/`（旧バックエンド用の PostgreSQL 定義）は削除した。E2E の対象を submodule 側の Phoenix Web UI に決めた時点でどちらもどこにも繋がらなくなり、データベースは `backend/infrastructure/docker` が 12 インスタンスまとめて立てるため、残しても参照されないものだった。
 
 なお `backend/` の中にも既存の E2E がある（`backend/web/shop_mall_web/e2e/` の Playwright テストと、`backend/tests/e2e/` の Go テスト）。これらは Gherkin を使っていない。本体側の `e2e/` は、それとは別に Gherkin ベースで書く。
 
@@ -123,7 +119,7 @@ flowchart LR
     S["仕様<br/>ユースケース"] --> F[".feature<br/>Gherkin"]
     F --> C["Cucumber<br/>ステップ定義"]
     C --> P["Playwright<br/>ブラウザ操作"]
-    P --> W["Phoenix Web UI<br/>:4000"]
+    P --> W["Phoenix Web UI<br/>:22200"]
     W --> M["Go サービス群<br/>:22100〜22111"]
     P --> R["レポート<br/>スクショ / trace"]
 ```
@@ -150,7 +146,6 @@ Gherkin は、前提・操作・期待結果を構造化して書くための記
 | E2E | Playwright / Cucumber / Node.js（未実装。バージョンは実装時に確定する） | `e2e/` |
 | テスト対象の Web UI | Elixir 1.15 以上 / Phoenix 1.8 | `backend/web/shop_mall_web` |
 | バックエンド | Go 1.25 / gRPC / PostgreSQL 16 | `backend/microservices/*` と `backend/simple-servers/*` |
-| 未接続のフロント | Next.js 14.2 / TypeScript | `frontend/` |
 
 Kubernetes 上にデプロイする案もあったが、誰でも手元で再現できることを優先して、ローカルで起動する方針にした。
 
@@ -158,14 +153,15 @@ Kubernetes 上にデプロイする案もあったが、誰でも手元で再現
 
 | ポート | 何 | どこ |
 |:--:|:--|:--|
-| 4000 | Phoenix Web UI — **E2E の対象** | `backend/web/shop_mall_web` |
+| 22200 | Phoenix Web UI — **E2E の対象** | `backend/web/shop_mall_web` |
 | 22100〜22111 | Go マイクロサービス 12 個（gRPC）。うち Shop Service は 22101 | `backend/microservices/*` / `backend/simple-servers/*` |
 | 22010〜22021 | PostgreSQL 12 インスタンス | `backend/infrastructure/docker` |
 | 22030〜 | Redis 12 インスタンス | 同上 |
 | 22000〜22007 | Elasticsearch / RabbitMQ / MinIO / MailHog | 同上 |
-| 48800 | Next.js（現在未接続） | `frontend/` |
 
-紛らわしいので注記しておくと、**ポート 4000 の Phoenix Web UI と、ポート 22101 の Go 製 Shop Service は別物**。Web UI が gRPC で Shop Service を呼ぶ関係にある。submodule 側の `scripts/check_all_services.sh` はこの2つを同一視していて、Shop を 4000 として数えている。
+紛らわしいので注記しておくと、**ポート 22200 の Phoenix Web UI と、ポート 22101 の Go 製 Shop Service は別物**。Web UI が gRPC で Shop Service を呼ぶ関係にある。submodule 側の `scripts/check_all_services.sh` はこの2つを同一視していて、Shop を 4000 として数えている。
+
+4000 が出てくるのは、Phoenix の設定（`config/dev.exs`）が `PORT` 未指定時のデフォルトを 4000 にしているため。submodule 側の `docs/PORT_ASSIGNMENT.md` と既存の Playwright 設定はどちらも 22200 を前提にしているので、**起動時に `PORT=22200` を渡す**のが正で、素で `mix phx.server` すると 4000 に上がってしまう。
 
 ポート番号の実体は `backend/infrastructure/docker/.env.example` にある。
 
@@ -204,10 +200,10 @@ PostgreSQL 12 インスタンスに加えて、Redis 12 インスタンス・Ela
 ```shell
 cd backend/web/shop_mall_web
 mix setup
-mix phx.server
+PORT=22200 mix phx.server
 ```
 
-http://localhost:4000 が E2E の対象になる画面（`PORT` 環境変数で変更できる）。この Phoenix アプリは自前のデータベースを持たず、gRPC で Go サービス群を呼ぶ。したがって画面は開いても、次の手順を踏むまで商品一覧などは表示されない。
+http://localhost:22200 が E2E の対象になる画面。`PORT` を省くと 4000 で上がるが、submodule 側のポート表も既存の Playwright 設定も 22200 を前提にしているので、揃えておく。この Phoenix アプリは自前のデータベースを持たず、gRPC で Go サービス群を呼ぶ。したがって画面は開いても、次の手順を踏むまで商品一覧などは表示されない。
 
 ### 4. Go サービス群を起動する（既知の問題あり）
 
@@ -237,7 +233,7 @@ docker compose -f backend/infrastructure/docker/docker-compose.yml down
 
 どちらも操作と期待結果が手順の形で書かれているので、そのまま Gherkin の 前提 / もし / ならば に落とすところから始めるのが早い。
 
-セレクタの当て方は、`backend/web/shop_mall_web/e2e/` にある既存の Playwright テストが参考になる。ただしこの既存テストは接続先を `http://localhost:22200` で直書きしていて（13 箇所）、今回の対象である 4000 とは違う。参考にするのはセレクタだけにして、URL は `baseURL` に集約する。
+セレクタの当て方は、`backend/web/shop_mall_web/e2e/` にある既存の Playwright テストが参考になる。素の Playwright で書かれた 8 ファイル・53 テストで、Gherkin は使っていない。接続先は `playwright.config.js` の `baseURL` が `http://localhost:22200`、各スペックにも同じ URL の直書きが散っている（13 箇所）。こちらの `e2e/` を書くときは URL を `baseURL` に集約して、直書きは持ち込まない。
 
 ## References
 
