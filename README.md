@@ -120,7 +120,7 @@ flowchart LR
     F --> C["Cucumber<br/>ステップ定義"]
     C --> P["Playwright<br/>ブラウザ操作"]
     P --> W["Phoenix Web UI<br/>:22200"]
-    W --> M["Go サービス群<br/>:22100〜22111"]
+    W --> M["Go サービス群<br/>:22102〜22111 ほか"]
     P --> R["レポート<br/>スクショ / trace"]
 ```
 
@@ -154,16 +154,17 @@ Kubernetes 上にデプロイする案もあったが、誰でも手元で再現
 | ポート | 何 | どこ |
 |:--:|:--|:--|
 | 22200 | Phoenix Web UI — **E2E の対象** | `backend/web/shop_mall_web` |
-| 22100〜22111 | Go マイクロサービス 12 個（gRPC）。うち Shop Service は 22101 | `backend/microservices/*` / `backend/simple-servers/*` |
+| 22102〜22111 | Go サービス 10 個（gRPC） | `backend/simple-servers/*` |
+| 50051 / 50052 | Auth / Shop（gRPC） | `backend/microservices/auth` / `backend/microservices/shop` |
 | 22010〜22021 | PostgreSQL 12 インスタンス | `backend/infrastructure/docker` |
-| 22030〜 | Redis 12 インスタンス | 同上 |
+| 22030〜22041 | Redis 12 インスタンス | 同上 |
 | 22000〜22007 | Elasticsearch / RabbitMQ / MinIO / MailHog | 同上 |
 
-紛らわしいので注記しておくと、**ポート 22200 の Phoenix Web UI と、ポート 22101 の Go 製 Shop Service は別物**。Web UI が gRPC で Shop Service を呼ぶ関係にある。submodule 側の `scripts/check_all_services.sh` はこの2つを同一視していて、Shop を 4000 として数えている。
+紛らわしいので注記しておくと、**Phoenix Web UI と Go 製 Shop Service は別物**。Web UI が gRPC で Shop Service を呼ぶ関係にある。submodule 側の `scripts/check_all_services.sh` はこの2つを同一視していて、Shop を 4000 として数えている。
 
-4000 が出てくるのは、Phoenix の設定（`config/dev.exs`）が `PORT` 未指定時のデフォルトを 4000 にしているため。submodule 側の `docs/PORT_ASSIGNMENT.md` と既存の Playwright 設定はどちらも 22200 を前提にしているので、**起動時に `PORT=22200` を渡す**のが正で、素で `mix phx.server` すると 4000 に上がってしまう。
+**この表はコードから取った。** インフラの 22000〜22041 は `backend/infrastructure/docker/.env.example` に書いてあるが、**サービス側のポートはそこには無い**。各サービスの `main.go` / `config.go` が既定値として直書きしていて（`getEnv("SERVICE_PORT", "22102")` の形）、環境変数で上書きする作りになっている。Phoenix も同じで、`config/dev.exs` が `PORT` 未指定時に 4000 を使う。
 
-ポート番号の実体は `backend/infrastructure/docker/.env.example` にある。
+submodule 側の `docs/PORT_ASSIGNMENT.md` は、Go サービス 12 個を 22100〜22111（Shop は 22101）としているが、**コードはそうなっていない**。Auth は 50051、Shop は 50052 が既定で、22100 と 22101 で待ち受けるものは無い。ポートを揃えたいなら `AUTH_SERVER_PORT` / `SHOP_SERVICE_PORT` を渡す必要がある。Web UI だけは、ポート表・既存の Playwright 設定ともに 22200 で一致しているので、**起動時に `PORT=22200` を渡す**のが正。
 
 ## Getting Started
 
