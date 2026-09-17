@@ -4,9 +4,9 @@
 
 「E2E に工数を割く価値があるのか」をチームや PM に説明するとき、口頭の理屈だけではなかなか通らない。動くシナリオとテストを見せたほうが早い、という発想で作っている。
 
-**現状: バックエンドは submodule として揃ったが、E2E のテストコードはまだ書いていない。** `e2e/` には `.gitKeep` しか入っていない。
+**現状: バックエンドを submodule として取り込んだところまで。E2E のテストコードはまだ書いていない**（`e2e/` には `.gitKeep` しか入っていない）。**そして submodule 側の Go サービスは、まだ購入フローを通せる状態になっていない。** 詳しくは [Getting Started の 4](#4-go-サービス群を起動するここが未解決) に書いた。ここが片付くまで、ブラウザ E2E は書いても通らない。
 
-最終更新: 2026-08-27
+最終更新: 2026-09-18
 
 ## この README の読み方
 
@@ -18,7 +18,7 @@
 
 題材はオンラインショップ。商品を選び、カートに入れ、決済して購入するまでを最小限で通す。
 
-バックエンドは別リポジトリの [go_microservice_example](https://github.com/makoto-developer/go_microservice_example) を `backend/` に git submodule として取り込んで使う。Go のマイクロサービス 12 個と、それを gRPC で呼ぶ Phoenix 製の Web UI が入っていて、E2E の対象はこの Web UI（`backend/web/shop_mall_web`、ポート 22200）。
+バックエンドは別リポジトリの [go_microservice_example](https://github.com/makoto-developer/go_microservice_example) を `backend/` に git submodule として取り込んで使う。Go のマイクロサービス 12 個と、それを gRPC で呼ぶ Phoenix 製の Web UI が入っていて、E2E の対象はこの Web UI（`backend/web/shop_mall_web`、ポート 22200）。ただし後述のとおり、Go サービス側は現時点では gRPC のガワだけで、業務処理が実装されていない。
 
 E2E のテストコードは、このリポジトリの `e2e/` に置く。テスト対象は submodule、テストは本体、という分け方をしている。テスト対象のバージョンが submodule の commit で固定されるので、「昨日は通ったのに今日落ちる」を調べるときに変数を1つ減らせる。
 
@@ -206,18 +206,22 @@ PORT=22200 mix phx.server
 
 http://localhost:22200 が E2E の対象になる画面。`PORT` を省くと 4000 で上がるが、submodule 側のポート表も既存の Playwright 設定も 22200 を前提にしているので、揃えておく。この Phoenix アプリは自前のデータベースを持たず、gRPC で Go サービス群を呼ぶ。したがって画面は開いても、次の手順を踏むまで商品一覧などは表示されない。
 
-### 4. Go サービス群を起動する（既知の問題あり）
+### 4. Go サービス群を起動する（ここが未解決）
 
-**`backend/` の `make up` と `make build` は、submodule として置いたこのリポジトリからは動かない。** どちらも `scripts/start_all_services.sh` / `scripts/build_all_services.sh` を呼ぶが、この2本は `BASE_DIR` に上流作者のローカル絶対パス（`/Users/.../go_microservice_example`）を直書きしている。パスが解決できないため、サービスは1つも起動しない。
+**この節の手順はまだ完成していない。** 現時点で分かっていることを順に書く。
 
-問題はもう4つある。
+`make up` と `make build` が submodule のチェックアウトから動かなかった件は、上流に PR を出した（https://github.com/makoto-developer/go_microservice_example/pull/1）。`scripts/start_all_services.sh` と `scripts/build_all_services.sh` が `BASE_DIR` に作者のローカル絶対パスを直書きしていたのが原因で、スクリプト自身の位置から求める形に直してある。マージされたら submodule を進める。
 
-- 起動スクリプトはビルド済みバイナリがある前提で、submodule のクローン直後にはそれが無い
-- 起動スクリプトが Shop Service として見ているのは `simple-servers/admin` で、E2E の対象である `web/shop_mall_web` は起動対象に入っていない
-- `make status` は `pgrep` でプロセス名を探すだけなので、`12/12 running` はポート待受や疎通の保証にならない
-- ビルドスクリプトが見ているのは Auth だけが `microservices/auth`、残り 10 個は `simple-servers/*` で、`microservices/shop` はビルド対象に入っていない。E2E が実際にどの実装群を相手にするのかが未整理
+**ただし、これが直っても E2E は動かない。** より根の深い問題が4つある。
 
-`BASE_DIR` をスクリプト自身の位置から求める形（`BASE_DIR="$(cd "$(dirname "$0")/.." && pwd)"`）に直し、ビルド手順を足せば解消する見込みだが、上流に PR を出すか、こちら側にラッパーを持つかは未決。**この手順は未検証**であり、E2E を書き始める前にここを片付ける必要がある。
+1. **Go サービスの中身が空。** `backend/simple-servers/*/main.go` は10本とも `reflection.Register(grpcServer)` しか呼んでおらず、業務 RPC のハンドラを1つも登録していない。ポートは開くので `make status` は通るが、どのメソッドを呼んでも実装が無い。
+2. **Web UI のクライアントとサーバーでポートが食い違っている。** `auth_live.ex` は Auth を 22100、`product_list_live.ex` は Shop を 22101、`customer_service_client.ex` は Customer を 50052 に向けている。一方サーバー側の既定は Auth 50051・Shop 50052・Customer 22102 で、3つとも噛み合っていない（Customer のクライアントが向いている 50052 は Shop のポート）。
+3. **Auth は環境変数なしでは起動しない。** `microservices/auth/config/config.go` の `Load()` が `AUTH_DATABASE_URL` / `JWT_ACCESS_SECRET` / `JWT_REFRESH_SECRET` のいずれかが空ならエラーを返して終了する。起動スクリプトもこの README もそれらを渡していない。
+4. **コミット済みのバイナリは x86_64 で、半分しかない。** git が持っているのは admin / customer / inventory / notification / review / shipping と `microservices/shop/server` の7本で、起動スクリプトが参照する order-server・payment-server・chat-service・search-service と auth-server は入っていない。しかも7本とも Mach-O x86_64 なので、Apple Silicon では Rosetta 頼みになる。
+
+このほか、起動スクリプトが Shop Service として見ているのは `simple-servers/admin` で `web/shop_mall_web` は起動対象に入っていないこと、`make status` が `pgrep` でプロセス名を探すだけであること、`microservices/shop` がビルド対象に入っていないことも同じ PR の本文にスコープ外として挙げてある。
+
+**結論として、いまの `backend/` に対してブラウザ E2E を書いても、ログイン画面から先へ進めない。** Gherkin を書き始める前に、まず Go サービスに業務ハンドラを実装し、クライアントとサーバーのポートを1つの表に揃える必要がある。それは E2E の作業ではなく backend 側の作業になる。
 
 ### 5. 止める
 
